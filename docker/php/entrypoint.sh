@@ -17,24 +17,14 @@ if grep -q "APP_KEY=" .env && ! grep -q "APP_KEY=base64:" .env; then
     php artisan key:generate --force
 fi
 
-echo "Waiting for database to be available..."
-max_attempts=30
-attempt=0
+echo "Checking database status..."
 
-until php artisan migrate:status > /dev/null 2>&1 || [ $attempt -eq $max_attempts ]; do
-    echo "Database not ready, waiting... (attempt $((attempt+1))/$max_attempts)"
-    sleep 2
-    attempt=$((attempt+1))
-done
-
-if [ $attempt -eq $max_attempts ]; then
-    echo "Warning: Database connection failed after $max_attempts attempts"
-    echo "Continuing without running migrations..."
+if  php artisan docker:database 2>/dev/null | tail -n 1 | grep -q "true" ; then
+    echo "Database is ready! Continuing with application startup..."
+    # Continue with your normal startup process here
 else
-    echo "Database is ready!"
-
-    echo "Running php artisan migrate:fresh --seed..."
-    php artisan migrate:fresh --seed --force
+    echo "Database check failed. Stopping container."
+    exit 1
 fi
 
 echo "Optimizing Laravel..."

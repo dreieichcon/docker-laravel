@@ -42,21 +42,14 @@ services:
     build:
       context: .
       dockerfile: docker/php/Dockerfile
+      args:
+        PROJECT_NAME: ${PROJECT_NAME}
     networks:
       - internal
     volumes:
       - ./docker/logs/php.log:/var/log/fpm-php.www.log
     ports:
       - "8000:8000"
-    environment:
-      APP_NAME: ${PROJECT_NAME}
-      APP_URL: https://${PROJECT_NAME}.test
-      DB_CONNECTION: mysql
-      DB_HOST: ${PROJECT_NAME}-db
-      DB_PORT: 3306
-      DB_DATABASE: 'docker_db'
-      DB_USERNAME: 'docker_db'
-      DB_PASSWORD: 'docker_db'
     depends_on:
       mysql:
         condition: service_healthy
