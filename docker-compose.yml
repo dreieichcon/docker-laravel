@@ -1,0 +1,92 @@
+x-project-name: &project-name ${PROJECT_NAME}
+
+services:
+  apache:
+    container_name: ${PROJECT_NAME}-apache
+    build:
+      context: .
+      dockerfile: docker/apache/Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./docker/apache/laravel-proxy.conf:/usr/local/apache2/conf/extra/laravel-proxy.conf
+    depends_on:
+      - php
+      - node
+    networks:
+      - internal
+
+  node:
+    container_name: ${PROJECT_NAME}-node
+    image: node:lts
+    working_dir: /var/www
+    build:
+      context: .
+      dockerfile: docker/node/Dockerfile
+    ports:
+      - 5173:5173
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - php
+    networks:
+      - internal
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /var/www
+
+  php:
+    container_name: ${PROJECT_NAME}-php
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    networks:
+      - internal
+    volumes:
+      - ./docker/logs/php.log:/var/log/fpm-php.www.log
+    ports:
+      - "8000:8000"
+    environment:
+      APP_NAME: ${PROJECT_NAME}
+      APP_URL: https://${PROJECT_NAME}.test
+      DB_CONNECTION: mysql
+      DB_HOST: ${PROJECT_NAME}-db
+      DB_PORT: 3306
+      DB_DATABASE: 'docker_db'
+      DB_USERNAME: 'docker_db'
+      DB_PASSWORD: 'docker_db'
+    depends_on:
+      mysql:
+        condition: service_healthy
+    develop:
+      watch:
+        - action: sync
+          path: ./src
+          target: /var/www/html
+
+  mysql:
+    container_name: ${PROJECT_NAME}-db
+    image: mysql:latest
+    platform: linux/x86_64
+    ports:
+     - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: 'root'
+      MYSQL_DATABASE: 'docker_db'
+      MYSQL_USER: 'docker_db'
+      MYSQL_PASSWORD: 'docker_db'
+    volumes:
+      - ./docker/db-data:/var/lib/mysql
+    networks:
+      - internal
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  internal:
+    driver: bridge

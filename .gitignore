@@ -1,0 +1,4 @@
+# docker specific
+docker/db-data/*
+docker/logs/*
+.idea

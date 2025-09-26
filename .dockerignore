@@ -1,0 +1,50 @@
+# Node modules
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Git
+.git
+.gitignore
+
+# Docker
+.docker
+docker-compose*.yml
+Dockerfile*
+
+# Environment files
+.env*
+!.docker.env
+
+# Storage and cache
+storage/logs/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/app/public/*
+bootstrap/cache/*
+
+# Vendor
+vendor
+
+# IDE and OS files
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Testing
+.phpunit.result.cache
+coverage
+
+# Temporary files
+*.tmp
+*.temp
+
+# Database data
+docker/db-data
+docker/db-data/*
+
+# MySQL socket files
+*.sock
